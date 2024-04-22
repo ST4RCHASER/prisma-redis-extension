@@ -4,7 +4,7 @@ import type Redis from "ioredis";
 
 import MockRedis from "ioredis-mock";
 
-import { createPrismaRedisCache } from "../src";
+import { createPrismaRedisCache } from "../src/middleware";
 
 // Create the mock Redis instance we need
 // Do some funky shit to get TypeScript to be happy 😫

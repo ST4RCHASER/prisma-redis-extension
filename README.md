@@ -1,14 +1,18 @@
-# `prisma-redis-middleware`
+# `prisma-redis-extension`
+
+## This forked version of [prisma-redis-middleware](https://github.com/Asjas/prisma-redis-middleware)
+
+### For document i will do it later
 
 [![License: Hippocratic 3.0](https://img.shields.io/badge/License-Hippocratic_3.0-lightgrey.svg)](https://firstdonoharm.dev)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-[![npm version](https://badge.fury.io/js/prisma-redis-middleware.svg)](https://badge.fury.io/js/prisma-redis-middleware)
-[![codecov](https://codecov.io/gh/Asjas/prisma-redis-middleware/branch/main/graph/badge.svg?token=6F6DDOSRK8)](https://codecov.io/gh/Asjas/prisma-redis-middleware)
-[![Main WorkFlow](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/main.yml/badge.svg)](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/main.yml)
-[![CodeQL WorkFlow](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/codeql-analysis.yml)
-[![Library code size](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/size.yml/badge.svg)](https://github.com/Asjas/prisma-redis-middleware/actions/workflows/size.yml)
+[![npm version](https://badge.fury.io/js/prisma-redis-extension.svg)](https://badge.fury.io/js/prisma-redis-extension)
+[![codecov](https://codecov.io/gh/ST4RCHASER/prisma-redis-extension/branch/main/graph/badge.svg?token=6F6DDOSRK8)](https://codecov.io/gh/ST4RCHASER/prisma-redis-extension)
+[![Main WorkFlow](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/main.yml/badge.svg)](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/main.yml)
+[![CodeQL WorkFlow](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/codeql-analysis.yml)
+[![Library code size](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/size.yml/badge.svg)](https://github.com/ST4RCHASER/prisma-redis-extension/actions/workflows/size.yml)
 
-This is a Prisma middleware used for caching and storing of Prisma queries in Redis (uses an in-memory LRU cache as
+This is a Prisma extension used for caching and storing of Prisma queries in Redis (uses an in-memory LRU cache as
 fallback storage).
 
 Uses [async-cache-dedupe](https://github.com/mcollina/async-cache-dedupe).
@@ -31,7 +35,7 @@ The latest versions of the following Node.js versions are tested and supported.
 
 ## Default Cached Methods
 
-Here is a list of all the Prisma methods that are currently cached by default in `prisma-redis-middleware`.
+Here is a list of all the Prisma methods that are currently cached by default in `prisma-redis-extension`.
 
 - findUnique
 - findUniqueOrThrow
@@ -44,7 +48,7 @@ Here is a list of all the Prisma methods that are currently cached by default in
 - findRaw
 - aggregateRaw
 
-`queryRaw` is not cached as it's executed against the Prisma db itself and not a model. This Prisma middleware is used
+`queryRaw` is not cached as it's executed against the Prisma db itself and not a model. This Prisma extension is used
 for caching queries based on the models that they are executed against.
 
 ## Quick Start
@@ -52,7 +56,7 @@ for caching queries based on the models that they are executed against.
 Install the package using `npm`:
 
 ```sh
-npm i --save-exact prisma-redis-middleware
+npm i --save-exact prisma-redis-extension
 ```
 
 _You will also need to install and configure an external dependency for `Redis` (for example: `ioredis` or one that uses
@@ -67,14 +71,14 @@ npm i --save-exact ioredis @types/ioredis
 ```mjs
 import Prisma from "prisma";
 import { PrismaClient } from "@prisma/client";
-import { createPrismaRedisCache } from "prisma-redis-middleware";
+import { createPrismaRedisCache } from "prisma-redis-extension";
 import Redis from "ioredis";
 
 const redis = new Redis(); // Uses default options for Redis connection
 
 const prisma = new PrismaClient();
 
-const cacheMiddleware: Prisma.Middleware = createPrismaRedisCache({
+const cacheextension: Prisma.extension = createPrismaRedisCache({
   models: [
     { model: "User", excludeMethods: ["findMany"] },
     { model: "Post", cacheTime: 180, cacheKey: "article" },
@@ -94,7 +98,7 @@ const cacheMiddleware: Prisma.Middleware = createPrismaRedisCache({
   },
 });
 
-prisma.$use(cacheMiddleware);
+prisma.$use(cacheextension);
 ```
 
 ## Code Example (Common JS / Require)
@@ -102,11 +106,11 @@ prisma.$use(cacheMiddleware);
 ```js
 const Prisma = require("prisma");
 const { PrismaClient } = require("@prisma/client");
-const { createPrismaRedisCache } = require("prisma-redis-middleware");
+const { createPrismaRedisCache } = require("prisma-redis-extension");
 
 const prisma = new PrismaClient();
 
-const cacheMiddleware: Prisma.Middleware = createPrismaRedisCache({
+const cacheextension: Prisma.extension = createPrismaRedisCache({
   models: [
     { model: "User", cacheTime: 60 },
     { model: "Post", cacheTime: 180 },
@@ -124,7 +128,7 @@ const cacheMiddleware: Prisma.Middleware = createPrismaRedisCache({
   },
 });
 
-prisma.$use(cacheMiddleware);
+prisma.$use(cacheextension);
 ```
 
 ## API
@@ -137,8 +141,8 @@ Options:
 - `onError`: (optional) a function that is called every time there is a cache error.
 - `onHit`: (optional) a function that is called every time there is a hit in the cache.
 - `onMiss`: (optional) a function that is called every time the result is not in the cache.
-- `cacheTime`: (optional) (number) the default time (in seconds) to use for models that don't have a `cacheTime` value set.
-  Default is 0.
+- `cacheTime`: (optional) (number) the default time (in seconds) to use for models that don't have a `cacheTime` value
+  set. Default is 0.
 - `excludeModels`: (optional) (string) an array of models to exclude from being cached.
 - `excludeMethods`: (optional) (string) an array of Prisma methods to exclude from being cached for all models.
 - `models`: (optional) an array of Prisma models. Models options are:

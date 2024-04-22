@@ -1,13 +1,23 @@
 {
-  "name": "prisma-redis-middleware",
-  "author": "A-J Roos <asjas@hey.com>",
+  "name": "prisma-redis-extension",
+  "authors": [
+    {
+      "name": "A-J Roos",
+      "email": "asjas@hey.com"
+    },
+    {
+      "name": "ST4RCHASER",
+      "url": "https://starchaser.me",
+      "email": "sc@yue.sh"
+    }
+  ],
   "version": "4.8.0",
-  "description": "Prisma Middleware for caching results of queries in Redis",
+  "description": "Prisma Extension for caching results of queries in Redis",
   "license": "Hippocratic-3.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "source": "./src/index.ts",
-  "module": "./dist/prisma-redis-middleware.esm.js",
+  "module": "./dist/prisma-redis-extension.esm.js",
   "files": [
     "dist",
     "src"
@@ -65,11 +75,11 @@
   },
   "size-limit": [
     {
-      "path": "dist/prisma-redis-middleware.cjs.production.min.js",
+      "path": "dist/prisma-redis-extension.cjs.production.min.js",
       "limit": "16 KB"
     },
     {
-      "path": "dist/prisma-redis-middleware.esm.js",
+      "path": "dist/prisma-redis-extension.esm.js",
       "limit": "16 KB"
     }
   ],
@@ -79,18 +89,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asjas/prisma-redis-middleware.git"
+    "url": "git+https://github.com/ST4RCHASER/prisma-redis-extension.git"
   },
   "keywords": [
     "prisma",
     "redis",
     "prisma-caching",
     "redis-caching",
-    "prisma-middleware",
+    "prisma-extension",
     "caching"
   ],
   "bugs": {
-    "url": "https://github.com/Asjas/prisma-redis-middleware/issues"
+    "url": "https://github.com/ST4RCHASER/prisma-redis-extension/issues"
   },
-  "homepage": "https://github.com/Asjas/prisma-redis-middleware#readme"
+  "homepage": "https://github.com/ST4RCHASER/prisma-redis-extension#readme"
 }
