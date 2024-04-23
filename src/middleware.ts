@@ -1,7 +1,6 @@
 // ! Middleware for legacy Prisma Client
 
 import { createCache } from "async-cache-dedupe";
-
 import { defaultCacheMethods, defaultMutationMethods } from "./cacheMethods";
 import type {
   CreatePrismaRedisCache,

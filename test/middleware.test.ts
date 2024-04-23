@@ -1,9 +1,6 @@
 import { afterEach, assert, describe, expect, test } from "vitest";
-
 import type Redis from "ioredis";
-
 import MockRedis from "ioredis-mock";
-
 import { createPrismaRedisCache } from "../src/middleware";
 
 // Create the mock Redis instance we need

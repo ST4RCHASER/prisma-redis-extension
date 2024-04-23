@@ -8,7 +8,6 @@ import createPrismaRedisCache from "../src";
 const mockRedis: unknown = new MockRedis();
 const redis = mockRedis as Redis;
 
-
 afterEach(async () => {
   await redis.flushall();
 });

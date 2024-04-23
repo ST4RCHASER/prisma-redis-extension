@@ -1,5 +1,4 @@
 import type Redis from "ioredis";
-
 import type { Prisma } from "@prisma/client";
 
 export type PrismaQueryAction =
@@ -48,7 +47,7 @@ export type FetchFromPrisma = (params: MiddlewareParams) => Promise<Result>;
 export type RedisMemoryStorage = {
   type: "redis";
   options?: RedisMemoryOptions;
-}
+};
 
 export type RedisMemoryOptions = {
   client: Redis;
@@ -59,7 +58,7 @@ export type RedisMemoryOptions = {
 export type MemoryStorage = {
   type: "memory";
   options?: MemoryStorageOptions;
-}
+};
 
 export type MemoryStorageOptions = {
   size?: number;
@@ -71,7 +70,7 @@ export type TtlFunction = (data: any) => number;
 
 export type CreatePrismaRedisCache = {
   models?: {
-    model: string & {} | Prisma.ModelName;
+    model: (string & {}) | Prisma.ModelName;
     cacheKey?: string;
     cacheTime?: number | TtlFunction;
     excludeMethods?: PrismaQueryAction[];
@@ -89,4 +88,5 @@ export type CreatePrismaRedisCache = {
     serialize: (data: any) => any;
     deserialize: (data: any) => any;
   };
+  useContainsInvalidation: boolean;
 };

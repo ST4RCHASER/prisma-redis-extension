@@ -20,5 +20,5 @@ export const defaultMutationMethods: PrismaMutationAction[] = [
   "delete",
   "deleteMany",
   "executeRaw",
-  "executeRawUnsafe"
+  "executeRawUnsafe",
 ];

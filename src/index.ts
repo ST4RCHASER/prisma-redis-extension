@@ -16,6 +16,7 @@ const createPrismaRedisCache = ({
   excludeModels = [],
   excludeMethods = [],
   transformer,
+  useContainsInvalidation = false,
 }: CreatePrismaRedisCache) =>
   Prisma.defineExtension((client) => {
     // Default options for "async-cache-dedupe"
@@ -35,6 +36,7 @@ const createPrismaRedisCache = ({
       name: "prisma-extension-redis-cache",
       query: {
         async $allOperations({ args: queryArgs, model, operation, query }) {
+          type typeQueryArgs = typeof queryArgs;
           let result;
 
           if (!model) {
@@ -70,8 +72,15 @@ const createPrismaRedisCache = ({
                     },
                     ttl: cacheTime || cacheOptions.ttl,
                   },
-                  async function modelsFetch({ cb, args }: { cb: typeof query; args: typeof queryArgs }) {
-                    result = await cb(args);
+                  async function modelsFetch({
+                    cb,
+                    args,
+                  }: {
+                    cb: typeof query;
+                    args: typeof queryArgs;
+                    queryArgs: typeQueryArgs;
+                  }) {
+                    result = await cb(args || queryArgs);
 
                     return result;
                   },
@@ -99,8 +108,16 @@ const createPrismaRedisCache = ({
                     return [`${model}~${key}`];
                   },
                 },
-                async function modelFetch({ cb, args }: { cb: typeof query; args: typeof queryArgs }) {
-                  result = await cb(args);
+                async function modelFetch({
+                  cb,
+                  args,
+                  queryArgs,
+                }: {
+                  cb: typeof query;
+                  args: typeof queryArgs;
+                  queryArgs: typeQueryArgs;
+                }) {
+                  result = await cb(args || queryArgs);
 
                   return result;
                 },
@@ -132,19 +149,26 @@ const createPrismaRedisCache = ({
 
             // If we successfully executed the Mutation we clear and invalidate the cache for the Prisma model
             if (defaultMutationMethods.includes(operation as PrismaMutationAction)) {
-              await cache.invalidateAll(`*${model}~*`);
-
-              await Promise.all(
-                (models || [])
-                  .filter(({ model }) => model === model)
-                  .map(async ({ invalidateRelated }) => {
-                    if (invalidateRelated) {
-                      await Promise.all(
-                        invalidateRelated.map(async (relatedModel) => cache.invalidateAll(`*${relatedModel}~*`)),
-                      );
-                    }
-                  }),
-              );
+              const invalidateList = [];
+              invalidateList.push(cache.invalidateAll(`*${model}~*`));
+              if (useContainsInvalidation) {
+                invalidateList.push(cache.invalidateAll(`*"${model}":*`));
+                invalidateList.push(cache.invalidateAll(`*"${model.toLowerCase()}":*`));
+              }
+              await Promise.all([
+                ...invalidateList,
+                await Promise.all(
+                  (models || [])
+                    .filter((x) => x.model === model)
+                    .map(async ({ invalidateRelated }) => {
+                      if (invalidateRelated) {
+                        await Promise.all(
+                          invalidateRelated.map(async (relatedModel) => cache.invalidateAll(`*${relatedModel}~*`)),
+                        );
+                      }
+                    }),
+                ),
+              ]);
             }
           }
 
