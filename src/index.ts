@@ -160,10 +160,25 @@ const createPrismaRedisCache = ({
                 await Promise.all(
                   (models || [])
                     .filter((x) => x.model === model)
-                    .map(async ({ invalidateRelated }) => {
+                    .map(async ({ invalidateRelated, customInvalidate, useContainsInvalidation: subUseContainsInvalidation }) => {
                       if (invalidateRelated) {
                         await Promise.all(
-                          invalidateRelated.map(async (relatedModel) => cache.invalidateAll(`*${relatedModel}~*`)),
+                          invalidateRelated.map(async (relatedModel) => {
+                            return Promise.all([
+                              cache.invalidateAll(`*${relatedModel}~*`),
+                              //If subUseContainsInvalidation is defined, use it, otherwise use the global useContainsInvalidation
+                              typeof subUseContainsInvalidation !== 'undefined' ? subUseContainsInvalidation : useContainsInvalidation ? cache.invalidateAll(`*"${relatedModel}":*`) : null,
+                              typeof subUseContainsInvalidation !== 'undefined' ? subUseContainsInvalidation : useContainsInvalidation ? cache.invalidateAll(`*"${relatedModel.toLowerCase()}":*`) : null
+                            ])
+                          }
+                          ),
+                        );
+                      }
+                      if (customInvalidate) {
+                        await Promise.all(
+                          customInvalidate.map(async (customKey) => {
+                            return cache.invalidateAll(customKey);
+                          }),
                         );
                       }
                     }),

@@ -75,6 +75,8 @@ export type CreatePrismaRedisCache = {
     cacheTime?: number | TtlFunction;
     excludeMethods?: PrismaQueryAction[];
     invalidateRelated?: string[] | Prisma.ModelName[];
+    customInvalidate?: string[];
+    useContainsInvalidation?: boolean;
   }[];
   storage?: RedisMemoryStorage | MemoryStorage;
   cacheTime?: number;
@@ -88,5 +90,5 @@ export type CreatePrismaRedisCache = {
     serialize: (data: any) => any;
     deserialize: (data: any) => any;
   };
-  useContainsInvalidation: boolean;
+  useContainsInvalidation?: boolean;
 };
