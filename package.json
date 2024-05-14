@@ -11,7 +11,7 @@
       "email": "sc@yue.sh"
     }
   ],
-  "version": "4.8.0",
+  "version": "4.8.2",
   "description": "Prisma Extension for caching results of queries in Redis",
   "license": "Hippocratic-3.0",
   "main": "./dist/index.js",
