@@ -1,3 +1,4 @@
+import { Redis } from "ioredis";
 import { Prisma } from "@prisma/client/extension";
 import { createCache } from "async-cache-dedupe";
 import { defaultCacheMethods, defaultMutationMethods } from "./cacheMethods";
@@ -144,46 +145,58 @@ const createPrismaRedisCache = ({
               console.error(err);
             }
           } else {
+            const redis = storage?.type === "redis" && storage?.options?.client ? storage.options.client : null;
             // Query the database for any Prisma method (mutation method) or Prisma model we excluded from the cache
             result = await fetchFromPrisma(queryArgs);
-
             // If we successfully executed the Mutation we clear and invalidate the cache for the Prisma model
             if (defaultMutationMethods.includes(operation as PrismaMutationAction)) {
               const invalidateList = [];
               invalidateList.push(cache.invalidateAll(`*${model}~*`));
+              invalidateList.push(cache.invalidateAll(`${model}~*`));
+              if (redis) {
+                invalidateList.push(removeFormRedis(redis, `*${model}~*`)); //Make sure to delete from redis as well
+              }
               if (useContainsInvalidation) {
                 invalidateList.push(cache.invalidateAll(`*"${model}":*`));
                 invalidateList.push(cache.invalidateAll(`*"${model.toLowerCase()}":*`));
+                if (redis) {
+                  invalidateList.push(removeFormRedis(redis, `*"${model}":*`)); //Make sure to delete from redis as well
+                  invalidateList.push(removeFormRedis(redis, `*"${model.toLowerCase()}":*`)); //Make sure to delete from redis as well
+                }
               }
-              await Promise.all([
-                ...invalidateList,
-                await Promise.all(
-                  (models || [])
-                    .filter((x) => x.model === model)
-                    .map(async ({ invalidateRelated, customInvalidate, useContainsInvalidation: subUseContainsInvalidation }) => {
-                      if (invalidateRelated) {
-                        await Promise.all(
-                          invalidateRelated.map(async (relatedModel) => {
-                            return Promise.all([
-                              cache.invalidateAll(`*${relatedModel}~*`),
-                              //If subUseContainsInvalidation is defined, use it, otherwise use the global useContainsInvalidation
-                              typeof subUseContainsInvalidation !== 'undefined' ? subUseContainsInvalidation : useContainsInvalidation ? cache.invalidateAll(`*"${relatedModel}":*`) : null,
-                              typeof subUseContainsInvalidation !== 'undefined' ? subUseContainsInvalidation : useContainsInvalidation ? cache.invalidateAll(`*"${relatedModel.toLowerCase()}":*`) : null
-                            ])
-                          }
-                          ),
-                        );
+              for (const {
+                invalidateRelated,
+                customInvalidate,
+                useContainsInvalidation: subUseContainsInvalidation,
+              } of (models || []).filter((x) => x.model === model)) {
+                if (invalidateRelated) {
+                  for (const relatedModel of invalidateRelated) {
+                    invalidateList.push(cache.invalidateAll(`*${relatedModel}~*`));
+                    invalidateList.push(cache.invalidateAll(`${relatedModel}~*`));
+                    if (
+                      typeof subUseContainsInvalidation !== "undefined"
+                        ? subUseContainsInvalidation
+                        : useContainsInvalidation
+                    ) {
+                      invalidateList.push(cache.invalidateAll(`*"${relatedModel}":*`));
+                      invalidateList.push(cache.invalidateAll(`*"${relatedModel.toLowerCase()}":*`));
+                      if (redis) {
+                        invalidateList.push(removeFormRedis(redis, `*"${relatedModel}":*`)); //Make sure to delete from redis as well
+                        invalidateList.push(removeFormRedis(redis, `*"${relatedModel.toLowerCase()}":*`)); //Make sure to delete from redis as well
                       }
-                      if (customInvalidate) {
-                        await Promise.all(
-                          customInvalidate.map(async (customKey) => {
-                            return cache.invalidateAll(customKey);
-                          }),
-                        );
-                      }
-                    }),
-                ),
-              ]);
+                    }
+                  }
+                }
+                if (customInvalidate) {
+                  for (const customKey of customInvalidate) {
+                    invalidateList.push(cache.invalidateAll(customKey));
+                    if (redis) {
+                      invalidateList.push(removeFormRedis(redis, customKey)); //Make sure to delete from redis as well
+                    }
+                  }
+                }
+              }
+              await Promise.all(invalidateList);
             }
           }
 
@@ -192,5 +205,16 @@ const createPrismaRedisCache = ({
       },
     });
   });
+
+const removeFormRedis = async (redis: Redis, str: string) => {
+  if (redis) {
+    try {
+      // @ts-ignore
+      await redis?.del(str);
+    } catch (e) {
+      console.log("Failed to delete from redis", e);
+    }
+  }
+};
 
 export default createPrismaRedisCache;
